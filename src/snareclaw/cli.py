@@ -33,24 +33,32 @@ SEV_STYLES = {
     "LOW": "dim",
 }
 
-BANNER = r"""[bold red]
-   _____ _   _            _____  ______  _____ _        ___        __
-  / ____| \ | |    /\    |  __ \|  ____|/ ____| |      /   \      / \    /\
- | (___ |  \| |   /  \   | |__) | |__  | |    | |     / /_\ \    /   \  /  \
-  \___ \| . ` |  / /\ \  |  _  /|  __| | |    | |    / _____ \  / / \ \/  \ \
-  ____) | |\  | / ____ \ | | \ \| |____| |____| |___/ /     \ \/ /   \    / /
- |_____/|_| \_|/_/    \_\|_|  \_\______|\_____|______/       \_\/     \  / /
-                                                                       \/ /
-                                                                        \/[/bold red]"""
+# ─── 8-bit pixel crab mascot + blocky font ───────────────────────────
 
-BANNER_SMALL = "[bold red]~ SnareClaw[/bold red]"
+CRAB = r"""
+               █▀     ▀█
+              ▐██ ▄█▄ ██▌
+               ▀█ ● ● █▀
+                ▀█████▀
+                ▐█ █ █▌
+                 ▀   ▀
+"""
+
+LOGO_TEXT = r"""
+  █▀▀ █▄ █ █▀█ █▀▄ █▀▀ █▀▀ █   █▀█ █   █
+  ▀▀█ █ ▀█ █▀█ ██▀ █▀  █   █   █▀█ █ █ █
+  ▀▀▀ ▀  ▀ ▀ ▀ ▀ ▀ ▀▀▀ ▀▀▀ ▀▀▀ ▀ ▀ ▀▀ ▀▀
+"""
+
+BANNER_SMALL = "[bold red]▐●●▌[/bold red] [bold]SnareClaw[/bold]"
 
 
 def _banner(small: bool = False) -> None:
     if small:
         console.print(f"\n  {BANNER_SMALL} [dim]v{__version__}[/dim]\n")
     else:
-        console.print(BANNER)
+        console.print("[bold red]" + CRAB.rstrip() + "[/bold red]")
+        console.print("[bold red]" + LOGO_TEXT.rstrip() + "[/bold red]")
         console.print(f"  [dim]v{__version__} — Ambient supply chain security monitor[/dim]\n")
 
 
@@ -82,7 +90,7 @@ def _pluralize(n: int, singular: str, plural: str | None = None) -> str:
 
 
 def _severity_bar(counts: dict[str, int]) -> str:
-    """Build a compact inline severity bar like: [!!!2] [!!4] [!12] [.3]"""
+    """Build a compact inline severity bar like: !!!2  !!4  !12  .3"""
     parts = []
     icons = {"CRITICAL": "!!!", "HIGH": "!!", "MEDIUM": "!", "LOW": "."}
     for sev in ("CRITICAL", "HIGH", "MEDIUM", "LOW"):
@@ -93,12 +101,19 @@ def _severity_bar(counts: dict[str, int]) -> str:
     return "  ".join(parts)
 
 
-@click.group()
+@click.group(invoke_without_command=True)
 @click.version_option(__version__, prog_name="snareclaw")
 @click.option("-v", "--verbose", is_flag=True, help="Enable debug logging")
-def main(verbose: bool) -> None:
-    """SnareClaw — Ambient supply chain security monitor."""
+@click.pass_context
+def main(ctx: click.Context, verbose: bool) -> None:
+    """SnareClaw — Ambient supply chain security monitor.
+
+    Run with no subcommand to launch interactive mode.
+    """
     _setup_logging(verbose)
+    if ctx.invoked_subcommand is None:
+        from snareclaw.interactive import run_interactive
+        run_interactive()
 
 
 # ─── watch ────────────────────────────────────────────────────────────
@@ -118,7 +133,7 @@ def watch(no_notify: bool, feed_interval: int) -> None:
     console.print(f"  [dim]Notifications:[/dim] {'on' if not no_notify else 'off'}")
     console.print(f"  [dim]Event log:[/dim]     ~/.snareclaw/events.db")
     console.print()
-    console.rule("[dim]watching — Ctrl+C to stop[/dim]")
+    console.rule("[bold red]▐●●▌[/bold red] [dim]watching — Ctrl+C to stop[/dim]")
     console.print()
     daemon.run(feed_interval=feed_interval)
 
@@ -150,21 +165,15 @@ def scan(target: str) -> None:
         display_name = target_path.name or str(target_path)
         console.print(f"  Target: [bold]{display_name}/[/bold]\n")
 
-        steps = [
-            ("Checking site-packages for .pth injections", None),
-            ("Scanning for exposed secrets", None),
-            ("Checking dependency vulnerability feeds", None),
-        ]
-
         # 1. Most critical first: .pth files
-        _step(1, 3, steps[0][0])
+        _step(1, 3, "Checking site-packages for .pth injections")
         watcher = EnvironmentWatcher(engine, rules)
         pth_events = watcher.scan_existing()
         total_events.extend(pth_events)
         _step_result(len(pth_events))
 
         # 2. Secrets scan
-        _step(2, 3, steps[1][0])
+        _step(2, 3, "Scanning for exposed secrets")
         scanner = SecretsScanner(engine, rules)
         secret_events = scanner.scan_directory(target_path)
         total_events.extend(secret_events)
@@ -264,9 +273,8 @@ def history(severity: str | None, package: str | None, days: int, limit: int) ->
         ts = datetime.datetime.fromtimestamp(ev.timestamp).strftime("%m/%d %H:%M")
         style = SEV_STYLES.get(ev.severity, "")
         pkg = f"[bold]{ev.package}[/bold]" if ev.package else ""
-        # Clean up message
         msg = ev.message
-        if ev.package and msg.startswith(f"Existing suspicious .pth file: "):
+        if ev.package and msg.startswith("Existing suspicious .pth file: "):
             msg = msg.replace("Existing suspicious ", "")
         if ev.package and msg.startswith(f"Dependency '{ev.package}'"):
             msg = msg.replace(f"Dependency '{ev.package}' ", "")

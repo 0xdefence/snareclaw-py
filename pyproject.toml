@@ -5,11 +5,40 @@ build-backend = "hatchling.build"
 [project]
 name = "snareclaw"
 version = "0.1.0"
-description = "Ambient supply chain security monitor for Python environments"
+description = "Ambient supply chain security monitor for Python environments — detects .pth injection, wheel/source mismatches, exposed secrets, and known vulnerabilities in real time."
+readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [
-    { name = "Eli / OpenClaw" },
+    { name = "Eli", email = "eli@0xdefence.com" },
+]
+keywords = [
+    "security",
+    "supply-chain",
+    "pypi",
+    "vulnerability",
+    "monitoring",
+    "dependency",
+    "malware",
+    "pth-injection",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: System :: Monitoring",
+    "Typing :: Typed",
 ]
 dependencies = [
     "watchdog>=4.0",
@@ -23,10 +52,27 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
+    "ruff>=0.4",
 ]
+
+[project.urls]
+Homepage = "https://github.com/0xDefence/snareclaw-py"
+Repository = "https://github.com/0xDefence/snareclaw-py"
+Issues = "https://github.com/0xDefence/snareclaw-py/issues"
 
 [project.scripts]
 snare = "snareclaw.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/snareclaw"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
