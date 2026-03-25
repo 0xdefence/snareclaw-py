@@ -144,11 +144,18 @@ def watch(no_notify: bool, feed_interval: int) -> None:
 @click.argument("target", default=".")
 def scan(target: str) -> None:
     """Scan a requirements file or directory for issues."""
-    store, engine, rules = _make_engine()
-    target_path = Path(target).resolve()
-    total_events: list[Event] = []
-
     _banner(small=True)
+
+    target_path = Path(target).resolve()
+
+    # Guard against scanning overly broad directories
+    _DANGEROUS_ROOTS = {"/", "/etc", "/usr", "/var", "/System", "/Library", "/home"}
+    if str(target_path) in _DANGEROUS_ROOTS:
+        console.print(f"  [red]Refused:[/red] scanning {target_path} is too broad. Point at a project directory.\n")
+        sys.exit(1)
+
+    store, engine, rules = _make_engine()
+    total_events: list[Event] = []
 
     if target_path.is_file():
         console.print(f"  Scanning [bold]{target_path.name}[/bold]")
@@ -194,8 +201,11 @@ def scan(target: str) -> None:
         else:
             _step(3, 3, "No requirements files found, skipped")
             console.print()
+    elif target_path.exists():
+        console.print(f"  [red]Error:[/red] {target} is not a file or directory\n")
+        sys.exit(1)
     else:
-        console.print(f"  [red]Target not found:[/red] {target}")
+        console.print(f"  [red]Target not found:[/red] {target}\n")
         sys.exit(1)
 
     _print_summary(total_events)
@@ -226,10 +236,15 @@ def _step_result(issue_count: int) -> None:
 @click.option("--github-token", envvar="GITHUB_TOKEN", help="GitHub API token")
 def verify(package: str, version: str, github_token: str | None) -> None:
     """Verify a specific package version against its source."""
+    _banner(small=True)
+
+    if not package.strip() or not version.strip():
+        console.print("  [red]Error:[/red] package name and version cannot be empty\n")
+        sys.exit(1)
+
     store, engine, rules = _make_engine()
     verifier = PackageVerifier(engine, rules, github_token=github_token)
 
-    _banner(small=True)
     console.print(f"  Verifying [bold]{package}=={version}[/bold]\n")
 
     with console.status("[dim]  Downloading wheel, diffing against source...[/dim]"):
@@ -251,8 +266,8 @@ def verify(package: str, version: str, github_token: str | None) -> None:
 @main.command()
 @click.option("--severity", type=click.Choice(["CRITICAL", "HIGH", "MEDIUM", "LOW"]))
 @click.option("--package", help="Filter by package name")
-@click.option("--last", "days", default=7, help="Show events from last N days (default: 7)")
-@click.option("--limit", default=50, help="Max events to show (default: 50)")
+@click.option("--last", "days", default=7, type=click.IntRange(min=1, max=365), help="Show events from last N days (default: 7)")
+@click.option("--limit", default=50, type=click.IntRange(min=1, max=1000), help="Max events to show (default: 50)")
 def history(severity: str | None, package: str | None, days: int, limit: int) -> None:
     """Show alert history."""
     store = EventStore()
@@ -356,10 +371,19 @@ def status() -> None:
 @click.option("--reason", help="Why this version is trusted")
 def trust(package: str, version: str, reason: str | None) -> None:
     """Mark a package version as explicitly trusted (allowlisted)."""
+    _banner(small=True)
+
+    if not package.strip() or not version.strip():
+        console.print("  [red]Error:[/red] package name and version cannot be empty\n")
+        sys.exit(1)
+
+    if reason and len(reason) > 500:
+        console.print("  [red]Error:[/red] reason too long (max 500 characters)\n")
+        sys.exit(1)
+
     store = EventStore()
     store.trust_package(package, version, reason)
     store.close()
-    _banner(small=True)
     console.print(f"  [green bold]*[/green bold] Trusted [bold]{package}=={version}[/bold]")
     if reason:
         console.print(f"    [dim]Reason:[/dim] {reason}")

@@ -53,6 +53,10 @@ class PackageVerifier:
         """Full verification pipeline for a single package version."""
         events: list[Event] = []
 
+        if not package or not package.strip() or not version or not version.strip():
+            log.warning("Invalid package or version: %r==%r", package, version)
+            return events
+
         pypi_meta = self._fetch_pypi_metadata(package, version)
         if not pypi_meta:
             return events
@@ -81,7 +85,7 @@ class PackageVerifier:
             resp = self._client.get(url)
             resp.raise_for_status()
             return resp.json()
-        except httpx.HTTPError:
+        except (httpx.HTTPError, ValueError):
             log.warning("Failed to fetch PyPI metadata for %s==%s", package, version)
             return None
 
