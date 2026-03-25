@@ -12,7 +12,7 @@ else:
     import tomli as tomllib
 
 DEFAULT_RULES_PATH = Path.home() / ".snareclaw" / "rules.toml"
-BUNDLED_RULES_PATH = Path(__file__).parent.parent.parent / "snare.toml"
+BUNDLED_RULES_PATH = Path(__file__).parent / "snare.toml"
 
 
 @dataclass

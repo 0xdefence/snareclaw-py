@@ -132,7 +132,7 @@ class FeedAggregator:
     async def _check_unpinned_risk(self, client: httpx.AsyncClient, package: str) -> list[Event]:
         """Flag unpinned deps that received a new publish recently."""
         events: list[Event] = []
-        rule_id = "unpinned-with-recent-publish"
+        rule_id = "unpinned-dependency"
         if not self.rules.is_enabled(rule_id):
             return events
         try:

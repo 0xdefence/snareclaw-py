@@ -34,7 +34,6 @@ SECRET_PATTERNS = [
     SecretPattern("AWS Access Key", re.compile(r"AKIA[0-9A-Z]{16}")),
     SecretPattern("AWS Secret Key", re.compile(r"(?i)aws_secret_access_key\s*[=:]\s*[A-Za-z0-9/+=]{40}")),
     SecretPattern("Generic API Key", re.compile(r"(?i)(?:api[_-]?key|apikey)\s*[=:]\s*['\"]?[A-Za-z0-9_-]{20,}['\"]?")),
-    SecretPattern("Generic Secret", re.compile(r"(?i)(?:secret|password|passwd|token)\s*[=:]\s*['\"]?[A-Za-z0-9_/+=!@#$%^&*-]{8,}['\"]?")),
 ]
 
 # Files to scan

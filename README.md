@@ -290,16 +290,6 @@ snare watch
 | Homebrew | `brew tap 0xDefence/tap && brew install snareclaw` |
 | curl | `curl -fsSL https://raw.githubusercontent.com/0xDefence/snareclaw-py/main/install.sh \| bash` |
 
-## Roadmap
-
-- [ ] Rust daemon rewrite (single binary, <8MB, sub-1% CPU)
-- [ ] VS Code extension with inline warnings in `requirements.txt`
-- [ ] pip install hook (intercept and verify before install completes)
-- [ ] Import-time subprocess detection (fork-bomb signal from LiteLLM)
-- [ ] Local web dashboard at `localhost:7734`
-- [ ] GitHub Actions integration (scan PRs for lockfile regressions)
-- [ ] Team mode — shared trust manifests via git-committed `snare.lock`
-
 ## License
 
 MIT

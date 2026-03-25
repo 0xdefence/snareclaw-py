@@ -66,6 +66,9 @@ snare = "snareclaw.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/snareclaw"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"src/snareclaw/snare.toml" = "snareclaw/snare.toml"
+
 [tool.ruff]
 target-version = "py310"
 line-length = 100
