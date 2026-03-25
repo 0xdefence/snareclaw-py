@@ -1,0 +1,94 @@
+# SnareClaw — Default Rules Configuration
+# Copy to ~/.snareclaw/rules.toml to customize
+
+# --- CRITICAL: Block by default ---
+
+[[rules]]
+id = "pth-file-in-wheel"
+severity = "CRITICAL"
+action = "block"
+description = "Wheel contains .pth file not present in source repo"
+
+[[rules]]
+id = "import-time-subprocess"
+severity = "CRITICAL"
+action = "block"
+description = "Package spawns subprocess during import"
+
+[[rules]]
+id = "import-time-network"
+severity = "CRITICAL"
+action = "block"
+description = "Package makes outbound network call during import"
+
+[[rules]]
+id = "known-malicious"
+severity = "CRITICAL"
+action = "block"
+description = "Package version matches known malicious hash (OSV)"
+
+# --- HIGH: Alert immediately ---
+
+[[rules]]
+id = "wheel-source-mismatch"
+severity = "HIGH"
+action = "alert"
+description = "Wheel contains files absent from GitHub source"
+
+[[rules]]
+id = "new-publisher"
+severity = "HIGH"
+action = "alert"
+description = "Publisher account less than 30 days old"
+
+[[rules]]
+id = "yanked-version"
+severity = "HIGH"
+action = "alert"
+description = "Version published and yanked within 48h"
+
+[[rules]]
+id = "unpinned-with-recent-publish"
+severity = "HIGH"
+action = "alert"
+description = "Unpinned dep received new publish in last 24h"
+
+[[rules]]
+id = "suspicious-system-file"
+severity = "HIGH"
+action = "alert"
+description = "Package created systemd/cron files"
+
+# --- MEDIUM: Background alert ---
+
+[[rules]]
+id = "unpinned-dependency"
+severity = "MEDIUM"
+action = "alert"
+description = "Dependency is not version-pinned in requirements"
+
+[[rules]]
+id = "exposed-secret"
+severity = "MEDIUM"
+action = "alert"
+description = "Token or key found in local file"
+
+[[rules]]
+id = "abandoned-package"
+severity = "MEDIUM"
+action = "alert"
+description = "Package has not been updated in 2+ years"
+
+# --- LOW: Weekly digest ---
+
+[[rules]]
+id = "known-vulnerability"
+severity = "LOW"
+action = "log"
+description = "Known CVE below CVSS 6"
+
+[[rules]]
+id = "single-maintainer"
+severity = "LOW"
+action = "log"
+description = "Package has a single maintainer (bus factor risk)"
